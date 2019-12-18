@@ -55,23 +55,29 @@ for i in range(2,8):
         lowerGraph.append(u)
         lowerGraph.append(v)
 
-    a = np.empty(60)
-    b = np.empty(60)
+    a = np.array([0,1])
+    b = np.array([1,0])
 
-    for l in range(0,60):
-        a[l] = l/60
-        b[l] = 1 - l/60
-
+    c1 = TCanvas("c1","c1",500,500)
+    c1.SetGrid()
+    
     gr1 = TGraph(60,higherGraph[0],higherGraph[1])
     gr2 = TGraph(60,higherGraph[2],higherGraph[3])
     gr3 = TGraph(60,higherGraph[4],higherGraph[5])
     gr4 = TGraph(60,higherGraph[6],higherGraph[7])
-    gr5 = TGraph(60,a,b)
+    gr5 = TGraph(2,a,b)
 
     gr1.SetLineColor(1)
     gr2.SetLineColor(2)
     gr3.SetLineColor(3)
     gr4.SetLineColor(4)
+
+    gr1.GetXaxis().SetTitle("Quark Efficiency")
+    gr1.GetYaxis().SetTitle("Gluon Rejection")
+
+    gPad.SetTickx()
+    gPad.SetTicky()
+    gStyle.SetGridStyle(0)
 
     gr1.Draw("")
     gr2.Draw("same")
@@ -79,18 +85,32 @@ for i in range(2,8):
     gr4.Draw("same")
     gr5.Draw("same")
 
-    c1.Print(str(bin[i])+"higher-ROC-plots.pdf")
+    c1.Print(str(bin[i])+"-higher-ROC-plots.pdf")
+    
+    c1 = TCanvas("c1","c1",500,500)
+    c1.SetGrid()
 
     gr1 = TGraph(60,lowerGraph[0],lowerGraph[1])
-    gr1 = TGraph(60,lowerGraph[2],lowerGraph[3])
-    gr1 = TGraph(60,lowerGraph[4],lowerGraph[5])
-    gr1 = TGraph(60,lowerGraph[6],lowerGraph[7])
+    gr2 = TGraph(60,lowerGraph[2],lowerGraph[3])
+    gr3 = TGraph(60,lowerGraph[4],lowerGraph[5])
+    gr4 = TGraph(60,lowerGraph[6],lowerGraph[7])
+    gr5 = TGraph(2,a,b)
 
     gr1.SetLineColor(1)
     gr2.SetLineColor(2)
     gr3.SetLineColor(3)
     gr4.SetLineColor(4)
-    gr5 = TGraph(60,a,b)
+
+    gr1.GetXaxis().SetTitle("Quark Efficiency")
+    gr1.GetYaxis().SetTitle("Gluon Rejection")
+
+    gPad.SetTickx()
+    gPad.SetTicky()
+    gStyle.SetGridStyle(0)
+
+    gPad.SetTickx()
+    gPad.SetTicky()
+    gStyle.SetGridStyle(0)
 
     gr1.Draw("")
     gr2.Draw("same")
@@ -98,4 +118,4 @@ for i in range(2,8):
     gr4.Draw("same")
     gr5.Draw("same")
 
-    c1.Print(str(bin[i])+"lower-ROC-plots.pdf")
+    c1.Print(str(bin[i])+"-lower-ROC-plots.pdf")

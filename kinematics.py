@@ -60,13 +60,18 @@ for i in range(2,8):
 
 #Create plots
 c1 = TCanvas("c1","c1",500,500)
-gStyle.SetOptStat(0)
+
 
 higherQuark500.GetXaxis().SetTitle(var)
 higherQuark500.GetYaxis().SetTitle("Normalized")
+higherQuark500.GetYaxis().SetLabelSize(0.025)
+
+gStyle.SetOptStat(0)
+gPad.SetTickx()
+gPad.SetTicky()
 
 if(var == "bdt"):
-    higherQuark500.GetYaxis().SetRangeUser(0,.075)
+    higherQuark500.GetYaxis().SetRangeUser(0,0.16)
 if(var == "ntrk"):
     higherQuark500.GetYaxis().SetRangeUser(0,.12)
 
@@ -97,12 +102,13 @@ higherGluon1200.SetLineStyle(2)
 lowerGluon1200.SetLineColor(3)
 lowerGluon1200.SetLineStyle(2)
 
-leg1 = TLegend(.72,.72,.92,.92)
+leg1 = TLegend(.6,.5,.82,.7)
 leg1.AddEntry(higherQuark500,"Quark Jet","L")
 leg1.AddEntry(higherGluon500,"Gluon Jet","L")
-leg1.AddEntry(higherQuark500,"500<pt<600 GeV","F")
-leg1.AddEntry(higherQuark800,"1000<pt<1200 GeV","F")
-leg1.AddEntry(higherQuark1200,"1200<pt<1500 GeV","F")
+leg1.AddEntry(higherQuark500,"500<p_{T}<600 GeV","F")
+leg1.AddEntry(higherQuark800,"1000<p_{T}<1200 GeV","F")
+leg1.AddEntry(higherQuark1200,"1200<p_{T}<1500 GeV","F")
+leg1.SetBorderSize(0)
 
 higherQuark500.Draw("HIST")
 higherQuark800.Draw("HIST same")
@@ -120,9 +126,13 @@ myText(0.14,0.72,"#bf{#scale[1.5]{|\eta|<2.1}}")
 c1.Print("summary-higher-"+var+".pdf")
 
 if(var == "bdt"):
-    lowerQuark500.GetYaxis().SetRangeUser(0,.075)
+    lowerQuark500.GetYaxis().SetRangeUser(0,0.16)
 if(var == "ntrk"):
     lowerQuark500.GetYaxis().SetRangeUser(0,.12)
+
+lowerQuark500.GetXaxis().SetTitle(var)
+lowerQuark500.GetYaxis().SetTitle("Normalized")
+lowerQuark500.GetYaxis().SetLabelSize(0.025)
 
 lowerQuark500.Draw("HIST")
 lowerQuark800.Draw("HIST same")
