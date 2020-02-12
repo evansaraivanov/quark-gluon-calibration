@@ -184,7 +184,7 @@ for i in range(0,4):
 
     var_fq1 = fq1*fq1 * ((var_tot_1 / ((tq1+tg1)*(tq1+tg1))) + (var_q1/(tq1*tq1)))
     var_fq2 = fq2*fq2 * ((var_tot_2 / ((tq2+tg2)*(tq2+tg2))) + (var_q2/(tq2*tq2)))
-    var_fg1 = fg1*fg1 * ((var_tot_2 / ((tq1+tg1)*(tq1+tg1))) + (var_q1/(tq1*tq1)))
+    var_fg1 = fg1*fg1 * ((var_tot_1 / ((tq1+tg1)*(tq1+tg1))) + (var_q1/(tq1*tq1)))
     var_fg2 = fg2*fg2 * ((var_tot_2 / ((tq2+tg2)*(tq2+tg2))) + (var_q2/(tq2*tq2)))
 
     eta_higher_quark.SetBinContent(i+1,fq1)
