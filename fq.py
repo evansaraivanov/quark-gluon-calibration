@@ -75,7 +75,7 @@ for i in range(0,6):
         var_q1 += (higher_quark.GetBinError(j)*higher_quark.GetBinError(j))
         var_q2 += (lower_quark.GetBinError(j)*lower_quark.GetBinError(j))
         var_g1 += (higher_gluon.GetBinError(j)*higher_gluon.GetBinError(j))
-        var_g1 += (lower_gluon.GetBinError(j)*lower_gluon.GetBinError(j))
+        var_g2 += (lower_gluon.GetBinError(j)*lower_gluon.GetBinError(j))
 
     var_tot_1 = var_q1 + var_g1
     var_tot_2 = var_q2 + var_g2
@@ -103,7 +103,7 @@ for i in range(0,6):
 pt_higher_quark.SetMaximum(1.)
 pt_higher_quark.SetMinimum(0.)
 pt_higher_quark.GetYaxis().SetTitle("Parton Fraction")
-pt_higher_quark.GetXaxis().SetTitle("p_{T}")
+pt_higher_quark.GetXaxis().SetTitle("p_{T} (GeV)")
 
 pt_higher_gluon.SetLineColor(2)
 pt_lower_quark.SetLineColor(3)
@@ -172,7 +172,7 @@ for i in range(0,4):
         var_q1 += (higher_quark.GetBinError(j)*higher_quark.GetBinError(j))
         var_q2 += (lower_quark.GetBinError(j)*lower_quark.GetBinError(j))
         var_g1 += (higher_gluon.GetBinError(j)*higher_gluon.GetBinError(j))
-        var_g1 += (lower_gluon.GetBinError(j)*lower_gluon.GetBinError(j))
+        var_g2 += (lower_gluon.GetBinError(j)*lower_gluon.GetBinError(j))
 
     var_tot_1 = var_q1 + var_g1
     var_tot_2 = var_q2 + var_g2
