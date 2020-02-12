@@ -1,4 +1,5 @@
 from ROOT import *
+import sys
 
 # This scripts read ttree as inputs and produce different histograms of distribution of variables in different pT range
 
@@ -9,8 +10,15 @@ from ROOT import *
 #5.fill hist with variables :Ntrk / BDT 
 #
 
+def update_progress(progress):
+	barlength = 20
+	status = ""
+	block = int(round(barlength*progress))
+	text = "\rPercent: [{0}] {1}% {2}".format("#"*block+"-"*(barlength-block), progress*100,status)
+	sys.stdout.write(text)
+	sys.stdout.flush()
 
-bins = [0.0,0.5,1.0,1.5,2.1]  #this bin range is for only dijet event
+bins = [300, 400, 500, 600, 800, 1000, 1200, 1500, 2000]  #this bin range is for only dijet event
 #bins = [0, 50, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1200, 1500, 2000]  #this bin range is for gammajet+dijet event
 HistMap = {}
 JetList = []
@@ -30,7 +38,7 @@ def GetHistBin(histname):
 	elif 'c1' in histname:
 		return 60,0.,0.4
 
-def FillTH1D(histname, var, w):
+def FillTH1F(histname, var, w):
 	if 'Data' in histname:
 		w = 1
 	if histname in HistMap:
@@ -42,8 +50,8 @@ def FillTH1D(histname, var, w):
 
 
 def FillHisto(prefix, jetlist, w):
-	FillTH1D(prefix+"_ntrk", jetlist[0], w)
-	FillTH1D(prefix+"_bdt", jetlist[1], w)
+	FillTH1F(prefix+"_ntrk", jetlist[0], w)
+	FillTH1F(prefix+"_bdt", jetlist[1], w)
 #	FillTH1F(prefix+"_width", jetlist[2], w)
 #	FillTH1F(prefix+"_c1", jetlist[3], w)
 #	FillTH1F(prefix+"_pt", jetlist[4], w)
@@ -61,25 +69,28 @@ def GetJetType(label):
 		return "Other"
 
 
-def FindBinIndex(jet_eta,etabin):
-	for i in range(len(etabin)-1):
-		if abs(jet_eta) >= etabin[i] and abs(jet_eta) < etabin[i+1]:
-			return etabin[i]
+def FindBinIndex(jet_pt,ptbin):
+	for i in range(len(ptbin)-1):
+		if jet_pt >= ptbin[i] and jet_pt < ptbin[i+1]:
+			return ptbin[i]
 
-	print "error: jet |eta| ",jet_eta,"outside the bin range"
+	print "error: jet pT ",jet_pt,"outside the bin range"
 	return -1
 
 
 ######## read and excute TTree from root file 
-finput = TFile.Open("./dijet-data-bdt/dijet_sherpa_bdt.root")
+finput = TFile.Open("/eos/user/e/esaraiva/dijet-data-bdt/dijet_sherpa_bdt.root")
 #finput = TFile.Open("/eos/user/e/esaraiva/dijet-data-bdt/dijet_data_bdt.root")
 t1 = finput.Get("AntiKt4EMPFlow_dijet_insitu")
+
+number = 0.
+total = t1.GetEntries()
 
 for i in t1:
 	if i.pass_HLT_j400 == 1 :#and i.j1_is_truth_jet and i.j2_is_truth_jet:
 		if i.j1_pT > 500 and i.j1_pT < 2000 and abs(i.j1_eta) < 2.1 and abs(i.j2_eta) < 2.1 and i.j1_pT/i.j2_pT < 1.5:
-			etabin1 = FindBinIndex(i.j1_eta, bins)
-			etabin2 = FindBinIndex(i.j2_eta, bins)
+			pTbin1 = FindBinIndex(i.j1_pT, bins)
+			pTbin2 = FindBinIndex(i.j2_pT, bins)
 
 			JetList = [[i.j1_NumTrkPt500, i.j1_bdt_resp],[i.j2_NumTrkPt500,i.j2_bdt_resp]] # JetList[0] for 1st jet, JetList[1] for 2nd jet
 
@@ -91,14 +102,19 @@ for i in t1:
 			if abs(i.j1_eta) > abs(i.j2_eta):
 				eta1 = "Forward"
 				eta2 = "Central"
-    
-                        weight_all = i.weight*i.weight_ptslice*i.pdfWeights[0]  #i.pdfWeights[0] is nominal
-                        FillHisto(str(etabin1)+"_LeadingJet_"+eta1+"_"+label1, JetList[0], weight_all)
-                        FillHisto(str(etabin2)+"_SubJet_"+eta2+"_"+label2, JetList[1], weight_all)
+            
+                        for j in range(0,101):
+                                weight_all = i.weight*i.weight_ptslice*i.pdfWeights[j]  #i.pdfWeights[0] is nominal
+                                FillHisto(str(pTbin1)+"_LeadingJet_"+eta1+"_"+label1, JetList[0], weight_all)
+                                FillHisto(str(pTbin2)+"_SubJet_"+eta2+"_"+label2, JetList[1], weight_all)
 
+			number = number+1
+			progress = number/total
+			
+			update_progress(progress)
 
 #foutput = TFile("dijet-data-py.root","recreate")
-foutput = TFile("dijet-sherpa-eta-newrange.root","recreate")
+foutput = TFile("dijet-sherpa-pdf.root","recreate")
 for hist in HistMap.values():
 	#for i in range(len(bins)):
 		#if str(bins[i]) in HistMap.keys():
