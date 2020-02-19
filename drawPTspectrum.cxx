@@ -88,7 +88,6 @@ void drawTChain() {
 				h2->Fill(j2_pT,w);
 			}
 		}
-
 	}
 	gStyle->SetOptStat(0);
 
