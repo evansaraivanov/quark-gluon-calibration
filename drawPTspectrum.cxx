@@ -13,198 +13,109 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <cmath>
 using namespace std;
 
-void drawPTspectrum(){
+void drawTChain() {
+	TCanvas *c1 = new TCanvas("c5","c5",600,400);
+	TH1 *h2 = new TH1F("h2","h2",150,500,2000);
 
-TCanvas* c1 = new TCanvas("c1","c1",600,400);
-TFile *f = new TFile("/eos/user/e/esaraiva/dijet_pythia_bdt_pt.root","recreate");
-//TFile *f = new TFile("/eos/user/w/wasu/AQT_dijet_data_bdt/dijet_data_bdt.root","recreate");
+	string root_lists = "/eos/user/e/esaraiva/dijet_pythia_bdt.txt";
+	//string root_lists = "/eos/user/w/wasu/AQT_dijet_data_bdt/dijet_data_bdt.txt";
+	string sLine="";
+	ifstream infile;
+	infile.open(root_lists.c_str());//Data());
 
-TChain* fChain = new TChain("AntiKt4EMPFlow_dijet_insitu");
+	while(!infile.eof())  {
+		getline(infile,sLine);
 
-string root_lists = "/eos/user/e/esaraiva/dijet_pythia_bdt.txt";
-//string root_lists = "/eos/user/w/wasu/AQT_dijet_data_bdt/dijet_data_bdt.txt";
-string sLine="";
-ifstream infile;
-infile.open(root_lists.c_str());//Data());
+		TFile f2(sLine.c_str());
 
-TFile f2(sLine.c_str());
+		TTree *t1 = (TTree*)f2.Get("AntiKt4EMPFlow_dijet_insitu");
 
-while(!infile.eof())
-{
-	getline(infile,sLine);
-	fChain->Add(sLine.c_str());
-}
+		Bool_t pass_HLT_j400; 
+		UInt_t mcChannelNumber;
+		Float_t j1_pT;
+		Float_t j2_pT;
+		Float_t weight;
+		Float_t weight_pileup;
+		Float_t pdfWeights[101];
+		Float_t j1_eta;
+		Float_t j2_eta;
 
-//cout << sLine.c_str() << endl;
+		t1->SetBranchStatus("*",0);
+		t1->SetBranchStatus("pass_HLT_j400",1);
+		t1->SetBranchStatus("mcChannelNumber",1);
+		t1->SetBranchStatus("j1_pT",1);
+		t1->SetBranchStatus("j2_pT",1);
+		t1->SetBranchStatus("j1_eta",1);
+		t1->SetBranchStatus("j2_eta",1);
+		t1->SetBranchStatus("weight",1);
+		t1->SetBranchStatus("weight_pileup",1);
+		t1->SetBranchStatus("pdfWeights",1);
 
-//TFile f2(sLine.c_str());
+		t1->SetBranchAddress("mcChannelNumber",&mcChannelNumber);
+		mcChannelNumber = t1->GetEntry(1);
 
-//infile.close();
+		t1->SetBranchAddress("weight",&weight);
+		weight = t1->GetEntry(1);
 
+		t1->SetBranchAddress("weight_pileup",&weight_pileup);
+		weight_pileup = t1->GetEntry(1);
 
-UInt_t mcChannelNumber; 
-Bool_t pass_HLT_j400; 
-Bool_t j1_is_truth_jet; 
-Bool_t j2_is_truth_jet; 
-Float_t j1_pT;
-Float_t j2_pT;
-Float_t j1_pT_truth;
-Float_t j2_pT_truth;
-Float_t j1_eta;
-Float_t j2_eta;
-Float_t j1_eta_truth;
-Float_t j2_eta_truth;
-Float_t weight;
-Float_t weight_ptslice;
-Float_t weight_pileup;
-Float_t pdfWeights[101];
-Float_t j2_bdt_resp;
-Float_t j1_bdt_resp;
-Float_t j1_trackWidth;
-Float_t j2_trackWidth;
-Float_t j1_trackC1;
-Float_t j2_trackC1;
-Int_t j1_NumTrkPt500;
-Int_t j2_NumTrkPt500;
-Int_t j1_partonLabel;
-Int_t j2_partonLabel;
+		float mc_weight;
+		int mc_mod;
 
+		mc_mod = mcChannelNumber % 100;
+		TString mod = Form("AntiKt4EMPFlow_J%d_sumOfWeights",mc_mod);
+		TH1 *h = (TH1F*)f2.Get(mod);
+		mc_weight = h->GetBinContent(1);
 
+		float w;
+		w = pdfWeights[0] * weight * mc_weight;
 
+		t1->SetBranchAddress("j1_pT",&j1_pT);
+		t1->SetBranchAddress("j2_pT",&j2_pT);
+		t1->SetBranchAddress("pass_HLT_j400",&pass_HLT_j400);
 
-fChain->SetBranchStatus("*",0);
-fChain->SetBranchStatus("mcChannelNumber",1);
-fChain->SetBranchStatus("pass_HLT_j400",1);
-fChain->SetBranchStatus("j1_is_truth_jet",1);
-fChain->SetBranchStatus("j2_is_truth_jet",1);
-fChain->SetBranchStatus("j1_pT",1);
-fChain->SetBranchStatus("j2_pT",1);
-fChain->SetBranchStatus("j1_pT_truth",1);
-fChain->SetBranchStatus("j2_pT_truth",1);
-fChain->SetBranchStatus("j1_eta",1);
-fChain->SetBranchStatus("j2_eta",1);
-fChain->SetBranchStatus("j1_eta_truth",1);
-fChain->SetBranchStatus("j2_eta_truth",1);
-fChain->SetBranchStatus("weight_ptslice",1);
-fChain->SetBranchStatus("weight",1);
-fChain->SetBranchStatus("weight_pileup",1);
-fChain->SetBranchStatus("pdfWeights",1);
-fChain->SetBranchStatus("j1_NumTrkPt500",1);
-fChain->SetBranchStatus("j2_NumTrkPt500",1);
-fChain->SetBranchStatus("j1_trackWidth",1);
-fChain->SetBranchStatus("j2_trackWidth",1);
-fChain->SetBranchStatus("j1_trackC1",1);
-fChain->SetBranchStatus("j2_trackC1",1);
-fChain->SetBranchStatus("j1_bdt_resp",1);
-fChain->SetBranchStatus("j2_bdt_resp",1);
-fChain->SetBranchStatus("j1_partonLabel",1);
-fChain->SetBranchStatus("j2_partonLabel",1); 
+		int entries;
+		entries = t1->GetEntries();
 
+		for (int i=0; i<entries; ++i) {
+			t1->GetEvent(i);
+			if(pass_HLT_j400 == true && j1_pT > 500 && j1_pT < 2000 && abs(j1_eta) < 2.1 && j1_eta/j2_eta < 1.5) {
+				h2->Fill(j1_pT,w);
+				h2->Fill(j2_pT,w);
+			}
+		}
 
-//TTree *t2 = fChain->CloneTree(0);
-//t2->CopyEntries(fChain);
+	}
+	gStyle->SetOptStat(0);
 
-fChain->SetBranchAddress("mcChannelNumber",&mcChannelNumber);
-mcChannelNumber = fChain->GetEntry(1);
+	h2->Draw("");
 
-fChain->SetBranchAddress("weight_ptslice",&weight_ptslice);
-weight_ptslice = fChain->GetEntry(1);
+	TLatex l1;
+	l1.SetTextSize(0.025);
+	l1.SetNDC();
+	l1.SetTextColor(1);
+	l1.DrawLatex(0.15,0.84,"#it{#bf{#scale[1.8]{#bf{ATLAS} Simulation Preliminary}}}");
+	l1.DrawLatex(0.15,0.80,"#bf{#scale[1.5]{#sqrt{s} = 13 TeV}}");
+	l1.DrawLatex(0.15,0.76,"#bf{#scale[1.5]{Dijet Event, Trigger = HLT_j400}}");
 
-fChain->SetBranchAddress("weight",&weight);
-weight = fChain->GetEntry(1);
+	c1->Print("pt-spectrum.pdf");
 
-fChain->SetBranchAddress("weight_pileup",&weight_pileup);
-weight_pileup = fChain->GetEntry(1);
+	h2->Draw("HIST");
 
-float mc_weight;
+	TLatex l2;
+	l2.SetTextSize(0.025);
+	l2.SetNDC();
+	l2.SetTextColor(1);
+	l2.DrawLatex(0.15,0.84,"#it{#bf{#scale[1.8]{#bf{ATLAS} Simulation Preliminary}}}");
+	l2.DrawLatex(0.15,0.80,"#bf{#scale[1.5]{#sqrt{s} = 13 TeV}}");
+	l2.DrawLatex(0.15,0.76,"#bf{#scale[1.5]{Dijet Event, Trigger = HLT_j400}}");
 
-if(mcChannelNumber == 364700) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J0_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-if(mcChannelNumber == 364701) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J1_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-if(mcChannelNumber == 364702) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J2_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-if(mcChannelNumber == 364703) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J3_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-if(mcChannelNumber == 364704) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J4_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-if(mcChannelNumber == 364705) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J5_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-if(mcChannelNumber == 364706) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J6_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-if(mcChannelNumber == 364707) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J7_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-if(mcChannelNumber == 364708) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J8_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-if(mcChannelNumber == 364709) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J9_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-if(mcChannelNumber == 364710) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J10_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-if(mcChannelNumber == 364711) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J11_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-if(mcChannelNumber == 364712) { 
-	TH1 *h = (TH1F*)f2.Get("AntiKt4EMPFlow_J12_sumOfWeights");
-	mc_weight = h->GetBinContent(1);
-}
-
-float w;
-w = -1*weight_pileup*weight_ptslice*mc_weight;
-
-//cout << weight << ", " << weight_pileup << ", " << mc_weight << ", " << w;
-
-TCanvas *c5 = new TCanvas("c5","c5",600,400);
-TH1 *h2 = new TH1F("h2","h2",150,500,2000);
-
-fChain->SetBranchAddress("j1_pT",&j1_pT);
-fChain->SetBranchAddress("j2_pT",&j2_pT);
-
-int entries;
-entries = fChain->GetEntries();
-for (int i=0; i<entries; ++i) {
-	fChain->GetEntry(i);
-//	cout >> j1_pT >> ", " >> j2_pT >> ", " >> w;
-	h2->Fill(j1_pT,w);
-	h2->Fill(j2_pT,w);
-}
-
-h2->Draw("");
-c5->Print("pt-spectrum.root");
-h2->Draw("");
-c5->Print("pt-spectrum.pdf");
-
-cout << "done.";
-
-//TTree *t2 = fChain->CopyTree("j1_pT>500 && j1_is_truth_jet &&j2_is_truth_jet && j3_is_truth_jet");
-//delete f;
-//t2->Print();
-//f->Write();
-f->Close();
-//f2.Close();
-//infile.close();
+	c1->Print("pt-spectrum-hist.pdf");
+	
+	h2->Draw("");
+	c1->Print("pt-spectrm-dijet.root");
 }
