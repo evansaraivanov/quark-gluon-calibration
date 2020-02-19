@@ -16,7 +16,7 @@
 #include <cmath>
 using namespace std;
 
-void drawTChain() {
+void drawPTspectrum() {
 	TCanvas *c1 = new TCanvas("c5","c5",600,400);
 	TH1 *h2 = new TH1F("h2","h2",150,500,2000);
 
