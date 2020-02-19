@@ -55,30 +55,28 @@ void drawTChain() {
 		t1->SetBranchStatus("pdfWeights",1);
 
 		t1->SetBranchAddress("mcChannelNumber",&mcChannelNumber);
-		mcChannelNumber = t1->GetEntry(1);
-
-		t1->SetBranchAddress("weight",&weight);
-		weight = t1->GetEntry(1);
-
+		t1->SetBranchAddress("j1_pT",&j1_pT);
+		t1->SetBranchAddress("j2_pT",&j2_pT);
+		t1->SetBranchAddress("pass_HLT_j400",&pass_HLT_j400);
 		t1->SetBranchAddress("weight_pileup",&weight_pileup);
+		t1->SetBranchAddress("weight",&weight);
+
+		mcChannelNumber = t1->GetEntry(1);
+		weight = t1->GetEntry(1);
 		weight_pileup = t1->GetEntry(1);
 
 		float mc_weight;
 		int mc_mod;
+		float w;
+		int entries;
 
 		mc_mod = mcChannelNumber % 100;
 		TString mod = Form("AntiKt4EMPFlow_J%d_sumOfWeights",mc_mod);
 		TH1 *h = (TH1F*)f2.Get(mod);
 		mc_weight = h->GetBinContent(1);
 
-		float w;
 		w = pdfWeights[0] * weight * mc_weight;
 
-		t1->SetBranchAddress("j1_pT",&j1_pT);
-		t1->SetBranchAddress("j2_pT",&j2_pT);
-		t1->SetBranchAddress("pass_HLT_j400",&pass_HLT_j400);
-
-		int entries;
 		entries = t1->GetEntries();
 
 		for (int i=0; i<entries; ++i) {
