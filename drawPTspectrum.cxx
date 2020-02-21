@@ -117,7 +117,7 @@ void drawPTspectrum() {
 	
 	TFile fout("dijet-pythia-bdt-pt.root","recreate");
 	
-	h2->Draw("");
+	h2->Write("");
 	fout.Write();
 	fout.Close();
 }
