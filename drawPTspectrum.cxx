@@ -1,4 +1,4 @@
-#include "Riostream.h"
+1#include "Riostream.h"
 #include "TH1.h"
 #include "TChain.h"
 #include "TString.h"
@@ -17,7 +17,7 @@
 using namespace std;
 
 void drawPTspectrum() {
-	TCanvas *c1 = new TCanvas("c5","c5",600,400);
+	TCanvas *c1 = new TCanvas("c1","c1",600,400);
 	TH1 *h2 = new TH1F("h2","h2",150,500,2000);
 
 	string root_lists = "/eos/user/e/esaraiva/dijet_pythia_bdt.txt";
@@ -30,6 +30,8 @@ void drawPTspectrum() {
 		getline(infile,sLine);
 
 		TFile f2(sLine.c_str());
+			
+		cout << sLine.c_str() << endl;
 
 		TTree *t1 = (TTree*)f2.Get("AntiKt4EMPFlow_dijet_insitu");
 
@@ -113,6 +115,9 @@ void drawPTspectrum() {
 
 	c1->Print("pt-spectrum-hist.pdf");
 	
+	TFile fout("dijet-pythia-bdt-pt.root","recreate");
+	
 	h2->Draw("");
-	c1->Print("pt-spectrm-dijet.root");
+	fout.Write();
+	fout.Close();
 }
