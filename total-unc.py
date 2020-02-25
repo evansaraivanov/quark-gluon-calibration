@@ -21,9 +21,12 @@ bin = [0, 50, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1200, 1500, 2000]
 ntrackall = TFile("/home/evan/Documents/python/research/Research-Tutorials-master/dijet_sherpa_py.root")
 ntrackall3 = TFile("/home/evan/Documents/python/research/Research-Tutorials-master/dijet_data_py.root")
 ntrackall4 = TFile("/home/evan/Downloads/dijet-pythia-py(1).root")
+ntrackall5 = TFile("/home/evan/Documents/python/research/Total-Un/pdf-scripts/dijet-sherpa-pdf-54.root")
+ntrackall6 = TFile("/home/evan/Documents/python/research/Total-Un/pdf-scripts/dijet-sherpa-pdf-100.root")
 
 for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 #for i in range(13):	#for gamma+jet combined with dijet event, start from jet pT>0 GeV
+        if(bin[i] != 800):
 		min = bin[i]
 		max = bin[i+1]
 
@@ -56,19 +59,21 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 		#note that for gammajet+dijet event, we need to add leading jet from gammajet and leading jet from dijet sample together
 		higher_data.Add(higher_data2)
 		lower_data.Add(lower_data2)
-		higher_quark.Add(higher_quark2)
+		quark_data = higher_data.Clone("")
+                gluon_data = higher_data.Clone("")
+                quark_pythia = higher_quark_pythia.Clone("")
+                gluon_pythia = higher_quark_pythia.Clone("")
+                higher_quark.Add(higher_quark2)
 		higher_gluon.Add(higher_gluon2)
 		lower_quark.Add(lower_quark2)
 		lower_gluon.Add(lower_gluon2)
+
                 higher_quark_pythia.Add(higher_quark2_pythia)
                 higher_gluon_pythia.Add(higher_gluon2_pythia)
                 lower_quark_pythia.Add(lower_quark2_pythia)
                 lower_gluon_pythia.Add(lower_gluon2_pythia)
 
-                higher_quark_pythia = higher_quark_pythia#.Scale(-1)
-                lower_quark_pythia = lower_quark_pythia#.Scale(-1)
-                higher_gluon_pythia = higher_gluon_pythia#.Scale(-1)
-                lower_gluon_pythia = lower_gluon_pythia#.Scale(-1)
+
 
 		ToT_Fq2 = 0.
 		ToT_Fg2 = 0.
@@ -106,7 +111,6 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
 
 
-		c = TCanvas("c","c",500,900)
 		if (doreweight):
 			for i in range(1,higher_quark.GetNbinsX()+1):
 				if (lower_quark.GetBinContent(i) > 0 and lower_gluon.GetBinContent(i) > 0 and lower_quark_pythia.GetBinContent(i) > 0 and lower_gluon_pythia.GetBinContent(i) > 0):
@@ -158,8 +162,9 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 			lower.SetBinContent(i,cg*lower_gluon.GetBinContent(i)+cq*lower_quark.GetBinContent(i))
 
                         higher_pythia.SetBinContent(i,fg_pythia*higher_gluon_pythia.GetBinContent(i)+fq_pythia*higher_quark_pythia.GetBinContent(i))
-                        lower_pythia.SetBinContent(i,fg_pythia*lower_gluon_pythia.GetBinContent(i)+fq_pythia*lower_quark_pythia.GetBinContent(i))
+                        lower_pythia.SetBinContent(i,cg_pythia*lower_gluon_pythia.GetBinContent(i)+cq_pythia*lower_quark_pythia.GetBinContent(i))
 			pass
+
 
 		#Now, let's solve.
 
@@ -170,6 +175,13 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                 quark_pythia = higher_quark_pythia.Clone("")
                 gluon_pythia = higher_quark_pythia.Clone("")
 
+                pdf_qvals = []
+                pdf_gvals = []
+
+                for i in range(1,higher.GetNbinsX()+1):
+                        pdf_qvals += [np.zeros(101)]
+                        pdf_gvals += [np.zeros(101)]
+                
 		#Matrix method here
 		for i in range(1,higher.GetNbinsX()+1):
 			F = higher.GetBinContent(i)
@@ -180,6 +192,10 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 				quark.SetBinContent(i,Q)
 				gluon.SetBinContent(i,G)
 				#print "   ",i,G,higher_gluon.GetBinContent(i),lower_gluon.GetBinContent(i)
+
+                                #store in lists for pdf uncertainty.
+                                pdf_qvals[i-1][0] = Q
+                                pdf_gvals[i-1][0] = G
 			pass
 
                 #for pythia
@@ -210,7 +226,7 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 				#print "   ",i,"  ",G,"   ",Q
 			pass
 
-                    # do bootstrap
+                # do bootstrap
 
                 #1. create lists to store bootstrapped values list of arrays of nstraps values
                 nstraps = 5000
@@ -271,7 +287,7 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                 
                 quarkMC_negative = quark.Clone()
                 gluonMC_negative = gluon.Clone()
-                
+
                 quark_copy.Add(higher_quark)
                 gluon_copy.Add(higher_gluon)
 
@@ -282,7 +298,7 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                 gluon_use = gluon.Clone("")
 
                 quark_use.Add(higher_quark,-1)
-                gluon_use.Add(higher_gluon,-1)
+                gluon_use.Add(lower_quark,-1)
 
                 for j in range(1,quark.GetNbinsX()+1):
                         a = quark_use.GetBinContent(j)
@@ -345,7 +361,132 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                 
 
+                #pdf uncertainty. stdev of binvals
+                #open the histograms for each pdf weight.
+                for k in range(1,101):
+                        if(k < 55):
+                                higher_quark = ntrackall5.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
+                                higher_quark1 = ntrackall5.Get(str(min)+"_SubJet_Forward_Quark"+str(k)+"_"+inputvar)
+                                lower_quark = ntrackall5.Get(str(min)+"_LeadingJet_Central_Quark"+str(k)+"_"+inputvar)
+                                lower_quark1 = ntrackall5.Get(str(min)+"_SubJet_Central_Quark"+str(k)+"_"+inputvar)
+                                higher_gluon = ntrackall5.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
+                                higher_gluon1 = ntrackall5.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
+                                lower_gluon = ntrackall5.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
+                                lower_gluon1 = ntrackall5.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
+                        else:
+                                higher_quark = ntrackall6.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
+                                higher_quark1 = ntrackall6.Get(str(min)+"_SubJet_Forward_Quark"+str(k)+"_"+inputvar)
+                                lower_quark = ntrackall6.Get(str(min)+"_LeadingJet_Central_Quark"+str(k)+"_"+inputvar)
+                                lower_quark1 = ntrackall6.Get(str(min)+"_SubJet_Central_Quark"+str(k)+"_"+inputvar)
+                                higher_gluon = ntrackall6.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
+                                higher_gluon1 = ntrackall6.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
+                                lower_gluon = ntrackall6.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
+                                lower_gluon1 = ntrackall6.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
 
+                        higher_quark.Add(higher_quark2)
+                        higher_gluon.Add(higher_gluon2)
+                        lower_quark.Add(lower_quark2)
+                        lower_gluon.Add(lower_gluon2)
+
+                        ToT_Fq2 = 0.
+                        ToT_Fg2 = 0.
+
+                        ToT_Cq2 = 0.
+                        ToT_Cg2 = 0.
+
+                        for j in range(1,lower_quark.GetNbinsX()+1):
+                                ToT_Fq2+=higher_quark.GetBinContent(j)
+                                ToT_Cq2+=lower_quark.GetBinContent(j)
+                                ToT_Fg2+=higher_gluon.GetBinContent(j)
+                                ToT_Cg2+=lower_gluon.GetBinContent(j)
+
+                        # calculate the fraction of forward(higher) / central(lower) quark or gluon jet
+                        fg=ToT_Fg2/(ToT_Fg2+ToT_Fq2)
+                        cg=ToT_Cg2/(ToT_Cq2+ToT_Cg2)
+                        fq=1.-fg
+                        cq=1.-cg
+
+                        if (doreweight):
+                                for i in range(1,higher_quark.GetNbinsX()+1):
+                                        if (lower_quark.GetBinContent(i) > 0 and lower_gluon.GetBinContent(i) > 0):
+                                                #print i,higher_quark.GetBinContent(i)/lower_quark.GetBinContent(i),higher_gluon.GetBinContent(i)/lower_gluon.GetBinContent(i)
+                                                factor_gluon = higher_gluon.GetBinContent(i)/lower_gluon.GetBinContent(i)
+                                                factor_quark = higher_quark.GetBinContent(i)/lower_quark.GetBinContent(i)
+
+                                                lower_quark.SetBinContent(i,lower_quark.GetBinContent(i)*factor_quark)
+                                                lower_gluon.SetBinContent(i,lower_gluon.GetBinContent(i)*factor_quark)
+                                                pass
+                                        pass
+                                pass
+                         
+
+                        if(lower_quark.Integral() != 0):
+                                lower_quark.Scale(1./lower_quark.Integral())
+                        if(lower_gluon.Integral() != 0):
+                                lower_gluon.Scale(1./lower_gluon.Integral())
+                        if(higher_quark.Integral() != 0):
+                                higher_quark.Scale(1./higher_quark.Integral())
+                        if(higher_gluon.Integral() != 0):
+                                higher_gluon.Scale(1./higher_gluon.Integral())
+
+                        higher = higher_quark.Clone("")
+                        lower = higher_quark.Clone("")
+
+                        for i in range(1,higher.GetNbinsX()+1):
+                                higher.SetBinContent(i,fg*higher_gluon.GetBinContent(i)+fq*higher_quark.GetBinContent(i))
+                                lower.SetBinContent(i,cg*lower_gluon.GetBinContent(i)+cq*lower_quark.GetBinContent(i))
+                                pass
+
+                        #Now, let's solve.
+
+                        quark = higher_quark.Clone("")
+                        gluon = higher_quark.Clone("")
+
+                        #Matrix method here
+                        for i in range(1,higher.GetNbinsX()+1):
+                                F = higher.GetBinContent(i)
+                                C = lower.GetBinContent(i)
+                                if((cg*fq-fg*cq) != 0 ):
+                                        Q = -(C*fg-F*cg)/(cg*fq-fg*cq)
+                                        G = (C*fq-F*cq)/(cg*fq-fg*cq)
+
+                                        pdf_qvals[i-1][k] = Q
+                                        pdf_gvals[i-1][k] = G
+
+                for j in range(0,quark.GetNbinsX()):
+                        pdf_qvals[j].sort()
+                        pdf_gvals[j].sort()
+                        Q = np.median(pdf_qvals[j])
+                        G = np.median(pdf_gvals[j])
+
+                        pdf_sigmaQ = .5*(pdf_qvals[j][int(.84*len(pdf_qvals[j]))] - pdf_qvals[j][int(.16*len(pdf_qvals[j]))])
+                        pdf_sigmaG = .5*(pdf_gvals[j][int(.84*len(pdf_gvals[j]))] - pdf_gvals[j][int(.16*len(pdf_gvals[j]))])
+
+                        quark_pdf = quark.Clone("")
+                        gluon_pdf = quark.Clone("")
+                        
+                        if(Q != 0):
+                                pdf_sigmaQ = np.abs(pdf_sigmaQ/Q)
+                        if(G != 0):
+                                pdf_sigmaG = np.abs(pdf_sigmaG/G)
+
+                        quark_pdf.SetBinContent(j+1,pdf_sigmaQ)
+                        gluon_pdf.SetBinContent(j+1,pdf_sigmaG)
+
+                        print(quark_pdf.GetBinContent(j+1))
+
+                        quark_pdf_negative = quark_pdf.Clone("")
+                        gluon_pdf_negative = gluon_pdf.Clone("")
+
+                        quark_pdf_negative = quark_pdf_negative * -1
+                        gluon_pdf_negative = gluon_pdf_negative * -1
+
+                quark_pdf.Scale(100)
+                quark_pdf_negative.Scale(100)
+
+
+
+                c = TCanvas("c","c",500,500)
 		## below just do the ploting 
 
 		gPad.SetLeftMargin(0.15)
@@ -381,9 +522,13 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                 quark_show_use.SetLineColor(4)
                 quark_show_use.SetLineStyle(2)
-
                 quark_show_negative.SetLineStyle(4)
                 quark_show_negative.SetLineStyle(2)
+
+                quark_pdf.SetLineColor(1)
+                quark_pdf.SetLineStyle(1)
+                quark_pdf_negative.SetLineColor(1)
+                quark_pdf_negative.SetLineStyle(1)
 
                 quark_data.GetYaxis().SetTitle("Uncertainty (%)")
 
@@ -393,6 +538,8 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                 quarkMC_negative.Draw("HIST same")
                 quark_show_use.Draw("HIST same")
                 quark_show_negative.Draw("HIST same")
+                quark_pdf.Draw("HIST same")
+                quark_pdf_negative.Draw("HIST same")
 
 		leg = TLegend(0.82,0.7,0.98,0.9) ##0.6,0.5,0.9,0.7
 		leg.SetTextFont(42)
@@ -421,7 +568,7 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 		#line = TLine(0.,1,0.4,1)
 
 #		quark_ratio.Draw()
-		line.Draw("same")
+#		line.Draw("same")
 		#c.Print("./plots_bdt/quark_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+"_fc.pdf")
 		c.Print("./plots_"+var+"/quark_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+".pdf")
 
@@ -451,7 +598,6 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                 gluon_show_use.SetLineColor(4)
                 gluon_show_use.SetLineStyle(2)
-
                 gluon_show_negative.SetLineStyle(4)
                 gluon_show_negative.SetLineStyle(2)
 
@@ -491,35 +637,3 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 #		gluon_ratio.Draw()
 		line.Draw("same")
 		c.Print("./plots_"+var+"/gluon_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+".pdf")
-
-
-                #plot all pdf.
-                quark.SetLineColor(1)
-                quark_pythia.SetLineColor(2)
-                quark_data.SetLineColor(4)
-
-                leg1 = TLegend(0.7,0.7,0.9,0.9)
-                leg1.AddEntry(quark_pythia,"quark pythia","l")
-                leg1.AddEntry(quark,"quark sherpa","l")
-
-                quark.Draw("A HIST")
-                quark_pythia.Draw("HIST same")
-                quark_data.Draw("HIST same")
-                leg1.Draw("same")
-
-                c.Print("QUARK-TEST_"+str(min)+".pdf")
-
-                gluon.SetLineColor(1)
-                gluon_pythia.SetLineColor(2)
-                gluon_data.SetLineColor(4)
-                
-                leg1 = TLegend(0.7,0.7,0.9,0.9)
-                leg1.AddEntry(gluon_pythia,"gluon pythia","l")
-                leg1.AddEntry(gluon,"gluon sherpa","l")
-
-                gluon.Draw("A HIST")
-                gluon_pythia.Draw("HIST same")
-                gluon_data.Draw("HIST same")
-                leg1.Draw("same")
-
-                c.Print("GLUON_TEST_"+str(min)+".pdf")
