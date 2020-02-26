@@ -1,4 +1,4 @@
-1#include "Riostream.h"
+#include "Riostream.h"
 #include "TH1.h"
 #include "TChain.h"
 #include "TString.h"
@@ -26,7 +26,7 @@ void drawPTspectrum() {
 	ifstream infile;
 	infile.open(root_lists.c_str());//Data());
 
-	while(!infile.eof())  {
+	while(getline(infile,sLine))  {
 		getline(infile,sLine);
 
 		TFile f2(sLine.c_str());
@@ -72,7 +72,8 @@ void drawPTspectrum() {
 		float w;
 		int entries;
 
-		mc_mod = mcChannelNumber % 100;
+		mc_mod = mcChannelNumber % 10;
+		cout << mc_mod << endl << endl;
 		TString mod = Form("AntiKt4EMPFlow_J%d_sumOfWeights",mc_mod);
 		TH1 *h = (TH1F*)f2.Get(mod);
 		mc_weight = h->GetBinContent(1);
@@ -83,13 +84,15 @@ void drawPTspectrum() {
 
 		for (int i=0; i<entries; ++i) {
 			t1->GetEvent(i);
-			if(pass_HLT_j400 == true && j1_pT > 500 && j1_pT < 2000 && abs(j1_eta) < 2.1 && j1_eta/j2_eta < 1.5) {
+			if(pass_HLT_j400 == true && j1_pT > 500 && j1_pT < 2000 && abs(j1_eta) < 2.1 && abs(j2_eta) < 2.5 &&  abs(j1_eta)/abs(j2_eta) <  1.5) {
 				h2->Fill(j1_pT,w);
-				h2->Fill(j2_pT,w);
+				//h2->Fill(j2_pT,w);
 			}
 		}
 	}
 	gStyle->SetOptStat(0);
+	gPad->SetLogy();
+	h2->GetXaxis()->SetTitle("p_{T} (GeV)");
 
 	h2->Draw("");
 
@@ -101,7 +104,7 @@ void drawPTspectrum() {
 	l1.DrawLatex(0.15,0.80,"#bf{#scale[1.5]{#sqrt{s} = 13 TeV}}");
 	l1.DrawLatex(0.15,0.76,"#bf{#scale[1.5]{Dijet Event, Trigger = HLT_j400}}");
 
-	c1->Print("pt-spectrum.pdf");
+	c1->Print("pt-spectrum-full.pdf");
 
 	h2->Draw("HIST");
 
@@ -113,11 +116,11 @@ void drawPTspectrum() {
 	l2.DrawLatex(0.15,0.80,"#bf{#scale[1.5]{#sqrt{s} = 13 TeV}}");
 	l2.DrawLatex(0.15,0.76,"#bf{#scale[1.5]{Dijet Event, Trigger = HLT_j400}}");
 
-	c1->Print("pt-spectrum-hist.pdf");
+	c1->Print("pt-spectrum-hist-ful.pdf");
 	
 	TFile fout("dijet-pythia-bdt-pt.root","recreate");
 	
-	h2->Write("");
+	h2->Draw("");
 	fout.Write();
 	fout.Close();
 }
