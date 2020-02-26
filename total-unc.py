@@ -383,10 +383,10 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                                 lower_gluon = ntrackall6.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
                                 lower_gluon1 = ntrackall6.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
 
-                        higher_quark.Add(higher_quark2)
-                        higher_gluon.Add(higher_gluon2)
-                        lower_quark.Add(lower_quark2)
-                        lower_gluon.Add(lower_gluon2)
+                        higher_quark.Add(higher_quark1)
+                        higher_gluon.Add(higher_gluon1)
+                        lower_quark.Add(lower_quark1)
+                        lower_gluon.Add(lower_gluon1)
 
                         ToT_Fq2 = 0.
                         ToT_Fg2 = 0.
@@ -453,6 +453,9 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                                         pdf_qvals[i-1][k] = Q
                                         pdf_gvals[i-1][k] = G
 
+                quark_pdf = quark.Clone("")
+                gluon_pdf = quark.Clone("")
+
                 for j in range(0,quark.GetNbinsX()):
                         pdf_qvals[j].sort()
                         pdf_gvals[j].sort()
@@ -461,9 +464,6 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                         pdf_sigmaQ = .5*(pdf_qvals[j][int(.84*len(pdf_qvals[j]))] - pdf_qvals[j][int(.16*len(pdf_qvals[j]))])
                         pdf_sigmaG = .5*(pdf_gvals[j][int(.84*len(pdf_gvals[j]))] - pdf_gvals[j][int(.16*len(pdf_gvals[j]))])
-
-                        quark_pdf = quark.Clone("")
-                        gluon_pdf = quark.Clone("")
                         
                         if(Q != 0):
                                 pdf_sigmaQ = np.abs(pdf_sigmaQ/Q)
@@ -475,11 +475,11 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                         print(quark_pdf.GetBinContent(j+1))
 
-                        quark_pdf_negative = quark_pdf.Clone("")
-                        gluon_pdf_negative = gluon_pdf.Clone("")
+                quark_pdf_negative = quark_pdf.Clone("")
+                gluon_pdf_negative = gluon_pdf.Clone("")
 
-                        quark_pdf_negative = quark_pdf_negative * -1
-                        gluon_pdf_negative = gluon_pdf_negative * -1
+                quark_pdf_negative = quark_pdf_negative * -1
+                gluon_pdf_negative = gluon_pdf_negative * -1
 
                 quark_pdf.Scale(100)
                 quark_pdf_negative.Scale(100)
