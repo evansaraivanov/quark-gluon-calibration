@@ -226,8 +226,16 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 				#print "   ",i,"  ",G,"   ",Q
 			pass
 
-                # do bootstrap
+                #uncertainty calculations
+                #uncertainty lists, number-of-bins lists of 4 uncertainties.
+                sigma_tot_q = []
+                sigma_tot_g = []
 
+                for j in range(0,quark.GetNbinsX()):
+                        sigma_tot_q += [np.zeros(4)]
+                        sigma_tot_g += [np.zeros(4)]
+
+                # do bootstrap
                 #1. create lists to store bootstrapped values list of arrays of nstraps values
                 nstraps = 5000
                 Qvals = []
@@ -257,6 +265,9 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                                 Gvals[j][k] = G
 
                 #compute the uncertainty and plots
+                quark_strap = quark_data.Clone("")
+                gluon_strap = gluon_data.Clone("")
+
                 for j in range(0,quark_data.GetNbinsX()):
                         Qvals[j].sort()
                         Gvals[j].sort()
@@ -267,18 +278,21 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                         sigmaG = .5*(Gvals[j][int(.84*len(Gvals[j]))] - Gvals[j][int(.16*len(Gvals[j]))])
 
                         if(Q != 0):
-                                sigmaQ = np.abs(100*sigmaQ/Q)
+                                sigmaQ = np.abs(sigmaQ/Q)
                         if(G != 0):
-                                sigmaG = np.abs(100*sigmaG/G)
+                                sigmaG = np.abs(sigmaG/G)
 
-                        quark_data.SetBinContent(j,sigmaQ)
-                        gluon_data.SetBinContent(j,sigmaG)
+                        sigma_tot_q[j-1][0] = sigmaQ
+                        sigma_tot_g[j-1][0] = sigmaG
 
-                        quark_negative = quark_data.Clone("")
-                        gluon_negative = gluon_data.Clone("")
+                        quark_strap.SetBinContent(j,sigmaQ)
+                        gluon_strap.SetBinContent(j,sigmaG)
 
-                        quark_negative = quark_negative * -1
-                        gluon_negative = gluon_negative * -1
+                quark_negative = quark_strap.Clone("")
+                gluon_negative = gluon_strap.Clone("")
+
+                quark_negative = quark_negative * -1
+                gluon_negative = gluon_negative * -1
 
                 #mc uncertainty
                 #uncertainty calculation percent difference
@@ -298,7 +312,7 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                 gluon_use = gluon.Clone("")
 
                 quark_use.Add(higher_quark,-1)
-                gluon_use.Add(lower_quark,-1)
+                gluon_use.Add(lower_gluon,-1)
 
                 for j in range(1,quark.GetNbinsX()+1):
                         a = quark_use.GetBinContent(j)
@@ -306,18 +320,25 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                         a = np.absolute(a)
                         b = np.absolute(b)
-                    
-                        quark_use.SetBinContent(j,(100*a))
-                        gluon_use.SetBinContent(j,(100*b))                       
 
-                        quarkMC_negative.SetBinContent(j,(-100*a))
-                        gluonMC_negative.SetBinContent(j,(-100*b))   
+                        sigma_tot_q[j-1][1] = a
+                        sigma_tot_g[j-1][1] = b
+                    
+                        quark_use.SetBinContent(j,a)
+                        gluon_use.SetBinContent(j,b)                       
+
+                        quarkMC_negative.SetBinContent(j,-1*a)
+                        gluonMC_negative.SetBinContent(j,-1*b)   
 
                 quark_use.Divide(quark_copy)
                 gluon_use.Divide(gluon_copy)
 
                 quarkMC_negative.Divide(quark_copy)
                 gluonMC_negative.Divide(gluon_copy)
+
+                for j in range(0,quark.GetNbinsX()):
+                        sigma_tot_q[j][1] = quark_use.GetBinContent(j+1)
+                        sigma_tot_g[j][1] = gluon_use.GetBinContent(j+1) 
 
 
 
@@ -341,23 +362,30 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                 gluon_show_use.Add(gluon_pythia,-1)
 
                 for j in range(1,quark.GetNbinsX()+1):
-                        a = quark_show_use.GetBinContent(j)
-                        b = gluon_show_use.GetBinContent(j)
+                        c = quark_show_use.GetBinContent(j)
+                        d = gluon_show_use.GetBinContent(j)
 
-                        a = np.absolute(a)
-                        b = np.absolute(b)
+                        c = np.absolute(c)
+                        d = np.absolute(d)
 
-                        quark_show_use.SetBinContent(j,100*a)
-                        gluon_show_use.SetBinContent(j,100*b)
+                        #sigma_tot_q[j-1][2] = c
+                        #sigma_tot_g[j-1][2] = d
 
-                        quark_show_negative.SetBinContent(j,-100*a)
-                        gluon_show_negative.SetBinContent(j,-100*b)
+                        quark_show_use.SetBinContent(j,c)
+                        gluon_show_use.SetBinContent(j,d)
+
+                        quark_show_negative.SetBinContent(j,-1*c)
+                        gluon_show_negative.SetBinContent(j,-1*d)
 
                 quark_show_use.Divide(quark_show_copy)
                 gluon_show_use.Divide(gluon_show_copy)
 
                 quark_show_negative.Divide(quark_show_copy)
                 gluon_show_negative.Divide(gluon_show_copy)
+
+                for j in range(0,quark.GetNbinsX()):
+                        sigma_tot_q[j][2] = quark_show_use.GetBinContent(j+1)
+                        sigma_tot_g[j][2] = gluon_show_use.GetBinContent(j+1) 
 
                 
 
@@ -464,16 +492,17 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                         pdf_sigmaQ = .5*(pdf_qvals[j][int(.84*len(pdf_qvals[j]))] - pdf_qvals[j][int(.16*len(pdf_qvals[j]))])
                         pdf_sigmaG = .5*(pdf_gvals[j][int(.84*len(pdf_gvals[j]))] - pdf_gvals[j][int(.16*len(pdf_gvals[j]))])
-                        
+
                         if(Q != 0):
                                 pdf_sigmaQ = np.abs(pdf_sigmaQ/Q)
                         if(G != 0):
                                 pdf_sigmaG = np.abs(pdf_sigmaG/G)
 
+                        sigma_tot_q[j][3] = pdf_sigmaQ
+                        sigma_tot_g[j][3] = pdf_sigmaG
+
                         quark_pdf.SetBinContent(j+1,pdf_sigmaQ)
                         gluon_pdf.SetBinContent(j+1,pdf_sigmaG)
-
-                        print(quark_pdf.GetBinContent(j+1))
 
                 quark_pdf_negative = quark_pdf.Clone("")
                 gluon_pdf_negative = gluon_pdf.Clone("")
@@ -481,9 +510,54 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                 quark_pdf_negative = quark_pdf_negative * -1
                 gluon_pdf_negative = gluon_pdf_negative * -1
 
-                quark_pdf.Scale(100)
-                quark_pdf_negative.Scale(100)
+                #total uncertainty
+                q_sigma_tot = quark.Clone("")
+                g_sigma_tot = gluon.Clone("")
 
+                for j in range (0, quark.GetNbinsX()):
+                        a = sigma_tot_q[j][0]
+                        b = sigma_tot_q[j][1]
+                        c = sigma_tot_q[j][2]
+                        d = sigma_tot_q[j][3]
+                        sigma_q_tot = np.sqrt((a**2)+(b**2)+(c**2)+(d**2))
+
+                        a = sigma_tot_g[j][0]
+                        b = sigma_tot_g[j][1]
+                        c = sigma_tot_g[j][2]
+                        d = sigma_tot_g[j][3]                   
+                        sigma_g_tot = np.sqrt((a**2)+(b**2)+(c**2)+(d**2))
+
+                        q_sigma_tot.SetBinContent(j+1,sigma_q_tot)
+                        g_sigma_tot.SetBinContent(j+1,sigma_g_tot)
+
+                q_sigma_tot.Scale(100)
+                g_sigma_tot.Scale(100)
+
+                q_sigma_tot_n = q_sigma_tot.Clone("")
+                g_sigma_tot_n = g_sigma_tot.Clone("")
+                q_sigma_tot_n.Scale(-1)
+                g_sigma_tot_n.Scale(-1)
+
+                quark_pdf.Scale(100)
+                gluon_pdf.Scale(100)
+                quark_pdf_negative.Scale(100)
+                gluon_pdf_negative.Scale(100)
+
+                quark_show_use.Scale(100)
+                gluon_show_use.Scale(100)
+                quark_show_negative.Scale(100)
+                gluon_show_negative.Scale(100)
+
+                quark_use.Scale(100)
+                gluon_use.Scale(100)
+                quarkMC_negative.Scale(100)
+                gluonMC_negative.Scale(100)
+
+
+                quark_strap.Scale(100)
+                gluon_strap.Scale(100)
+                quark_negative.Scale(100)
+                gluon_negative.Scale(100)
 
 
                 c = TCanvas("c","c",500,500)
@@ -499,40 +573,45 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 		gStyle.SetOptStat(0)
 		######################## for ratio plo
 
-		quark_data.GetYaxis().SetRangeUser(-25,25)
-		quark_data.SetMarkerColor(8)
-		quark_data.SetLineColor(8)
-		quark_data.SetMarkerSize(0.8) 
-		quark_data.SetLineStyle(2)
-
-		quark_negative.SetMarkerColor(8)
-		quark_negative.SetLineColor(8)
-		quark_negative.SetMarkerSize(0.8)
+		quark_strap.GetYaxis().SetRangeUser(-25,25)
+		quark_strap.SetLineColor(2)
+		quark_strap.SetLineStyle(2)
+		#quark_strap.SetMarkerColor(8)
+		#quark_strap.SetMarkerSize(0.8) 
+		quark_negative.SetLineColor(2)
 		quark_negative.SetLineStyle(2)
+		#quark_negative.SetMarkerSize(0.8)
+		#quark_negative.SetMarkerColor(8)
 
-		quark_use.SetMarkerColor(2)
-		quark_use.SetLineColor(2)
-		quark_use.SetMarkerSize(0.8)
+		quark_use.SetLineColor(30)
 		quark_use.SetLineStyle(2)
-
-		quarkMC_negative.SetMarkerColor(2)
-		quarkMC_negative.SetLineColor(2)
-		quarkMC_negative.SetMarkerSize(0.8)
+		#quark_use.SetMarkerColor(2)
+		#quark_use.SetMarkerSize(0.8)
+		quarkMC_negative.SetLineColor(30)
 		quarkMC_negative.SetLineStyle(2)
+                #quarkMC_negative.SetMarkerColor(2)
+		#quarkMC_negative.SetMarkerSize(0.8)
 
-                quark_show_use.SetLineColor(4)
+                quark_show_use.SetLineColor(6)
                 quark_show_use.SetLineStyle(2)
-                quark_show_negative.SetLineStyle(4)
+                quark_show_negative.SetLineColor(6)
                 quark_show_negative.SetLineStyle(2)
 
-                quark_pdf.SetLineColor(1)
-                quark_pdf.SetLineStyle(1)
-                quark_pdf_negative.SetLineColor(1)
-                quark_pdf_negative.SetLineStyle(1)
+                quark_pdf.SetLineColor(28)
+                quark_pdf.SetLineStyle(2)
+                quark_pdf_negative.SetLineColor(28)
+                quark_pdf_negative.SetLineStyle(2)
 
-                quark_data.GetYaxis().SetTitle("Uncertainty (%)")
+                q_sigma_tot.SetLineColor(4)
+                q_sigma_tot.SetLineStyle(1)
+                q_sigma_tot.SetLineWidth(2)
+                q_sigma_tot_n.SetLineColor(4)
+                q_sigma_tot_n.SetLineStyle(1)
+                q_sigma_tot_n.SetLineWidth(2)
 
-                quark_data.Draw("HIST")
+                quark_strap.GetYaxis().SetTitle("Uncertainty (%)")
+
+                quark_strap.Draw("HIST")
                 quark_negative.Draw("HIST same")
                 quark_use.Draw("HIST same")
                 quarkMC_negative.Draw("HIST same")
@@ -540,6 +619,8 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                 quark_show_negative.Draw("HIST same")
                 quark_pdf.Draw("HIST same")
                 quark_pdf_negative.Draw("HIST same")
+                q_sigma_tot.Draw("HIST same")
+                q_sigma_tot_n.Draw("HIST same")
 
 		leg = TLegend(0.82,0.7,0.98,0.9) ##0.6,0.5,0.9,0.7
 		leg.SetTextFont(42)
@@ -547,9 +628,11 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 		leg.SetBorderSize(0)
 		leg.SetFillStyle(0)
 		leg.SetNColumns(1)
-		leg.AddEntry(quark_data,"Statistical","l")
+		leg.AddEntry(quark_strap,"Statistical","l")
 		leg.AddEntry(quark_use,"MC Closure","l")
                 leg.AddEntry(quark_show_use,"Showering","l")
+                leg.AddEntry(quark_pdf,"PDF","l")
+                leg.AddEntry(q_sigma_tot,"Total","l")
 
 		myText(0.18,0.9,"#it{#bf{#scale[1.8]{#bf{ATLAS} Internal}}}")
 		
@@ -561,52 +644,68 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                 if(inputvar == "ntrk"):
 		    line = TLine(0.,0,60,0)
-                    quark_data.GetXaxis().SetTitle("n_{Track}")
+                    quark_strap.GetXaxis().SetTitle("n_{Track}")
                 if(inputvar == "bdt"):
 		    line = TLine(-0.8,0,0.7,0)
-                    quark_data.GetXaxis().SetTitle("BDT")
-		#line = TLine(0.,1,0.4,1)
+                    quark_strap.GetXaxis().SetTitle("BDT")
+#		line = TLine(0.,1,0.4,1)
 
 #		quark_ratio.Draw()
-#		line.Draw("same")
+		line.Draw("same")
 		#c.Print("./plots_bdt/quark_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+"_fc.pdf")
 		c.Print("./plots_"+var+"/quark_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+".pdf")
 
 
-                gluon_data.GetYaxis().SetTitle("Uncertainty (%)")
-		gluon_data.GetYaxis().SetRangeUser(-25,25)
+                gluon_strap.GetYaxis().SetTitle("Uncertainty (%)")
+		gluon_strap.GetYaxis().SetRangeUser(-25,25)
 
-		gluon_data.SetMarkerColor(8)
-		gluon_data.SetLineColor(8)
-		gluon_data.SetMarkerSize(0.8) 
-		gluon_data.SetLineStyle(2)
 
-		gluon_negative.SetMarkerColor(8)
-		gluon_negative.SetLineColor(8)
-		gluon_negative.SetMarkerSize(0.8)
+		gluon_strap.SetLineColor(2)
+		gluon_strap.SetLineStyle(2)
+		#gluon_strap.SetMarkerColor(2)
+		#gluon_strap.SetMarkerSize(0.8) 
+		gluon_negative.SetLineColor(2)
 		gluon_negative.SetLineStyle(2)
+		#gluon_negative.SetMarkerColor(2)
+		#gluon_negative.SetMarkerSize(0.8)
 
-		gluon_use.SetMarkerColor(2)
-		gluon_use.SetLineColor(2)
-		gluon_use.SetMarkerSize(0.8)
+
+		gluon_use.SetLineColor(30)
 		gluon_use.SetLineStyle(2)
-
-		gluonMC_negative.SetMarkerColor(2)
-		gluonMC_negative.SetLineColor(2)
-		gluonMC_negative.SetMarkerSize(0.8)
+		#gluon_use.SetMarkerColor(30)
+		#gluon_use.SetMarkerSize(0.8)
+		gluonMC_negative.SetLineColor(30)
 		gluonMC_negative.SetLineStyle(2)
+		#gluonMC_negative.SetMarkerColor(30)
+		#gluonMC_negative.SetMarkerSize(0.8)
 
-                gluon_show_use.SetLineColor(4)
+                gluon_show_use.SetLineColor(6)
                 gluon_show_use.SetLineStyle(2)
-                gluon_show_negative.SetLineStyle(4)
+                gluon_show_negative.SetLineColor(6)
                 gluon_show_negative.SetLineStyle(2)
 
-                gluon_data.Draw("HIST")
+                gluon_pdf.SetLineColor(28)
+                gluon_pdf.SetLineStyle(2)
+                gluon_pdf_negative.SetLineColor(28)
+                gluon_pdf_negative.SetLineStyle(2)
+
+                g_sigma_tot.SetLineColor(4)
+                g_sigma_tot.SetLineStyle(1)
+                g_sigma_tot.SetLineWidth(2)
+                g_sigma_tot_n.SetLineColor(4)
+                g_sigma_tot_n.SetLineStyle(1)
+                g_sigma_tot_n.SetLineWidth(2)
+
+                gluon_strap.Draw("HIST")
                 gluon_negative.Draw("HIST same")
                 gluon_use.Draw("HIST same")
                 gluonMC_negative.Draw("HIST same")
                 gluon_show_use.Draw("HIST same")
                 gluon_show_negative.Draw("HIST same")
+                gluon_pdf.Draw("HIST same")
+                gluon_pdf_negative.Draw("HIST same")
+                g_sigma_tot.Draw("HIST same")
+                g_sigma_tot_n.Draw("HIST same")
 
 		leg = TLegend(0.82,0.7,0.98,0.9) ##0.6,0.5,0.9,0.7
 		leg.SetTextFont(42)
@@ -614,9 +713,11 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 		leg.SetBorderSize(0)
 		leg.SetFillStyle(0)
 		leg.SetNColumns(1)
-		leg.AddEntry(gluon_data,"Statistical","l")
+		leg.AddEntry(gluon_strap,"Statistical","l")
                 leg.AddEntry(gluon_use,"MC Closure","l")
                 leg.AddEntry(gluon_show_use,"Showering","l")
+                leg.AddEntry(gluon_pdf,"PDF","l")
+                leg.AddEntry(g_sigma_tot,"Total","l")
 	    
 		myText(0.18,0.9,"#it{#bf{#scale[1.8]{#bf{ATLAS} Internal}}}")
 		
@@ -628,10 +729,10 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                 if(inputvar == "ntrk"):
 		    line = TLine(0.,0,60,0)
-                    gluon_data.GetXaxis().SetTitle("n_{Track}")
+                    gluon_strap.GetXaxis().SetTitle("n_{Track}")
                 if(inputvar == "bdt"):
 		    line = TLine(-0.8,0,0.7,0)
-                    gluon_data.GetXaxis().SetTitle("BDT")
+                    gluon_strap.GetXaxis().SetTitle("BDT")
 
 #		bot.cd()
 #		gluon_ratio.Draw()
