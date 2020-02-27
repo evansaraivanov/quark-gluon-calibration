@@ -18,7 +18,7 @@ using namespace std;
 
 void drawPTspectrum() {
 	TCanvas *c1 = new TCanvas("c1","c1",600,400);
-	TH1 *h2 = new TH1F("h2","h2",150,500,2000);
+	TH1 *h2 = new TH1D("h2","",150,500,2000);
 
 	string root_lists = "/eos/user/e/esaraiva/dijet_pythia_bdt.txt";
 	//string root_lists = "/eos/user/w/wasu/AQT_dijet_data_bdt/dijet_data_bdt.txt";
@@ -62,10 +62,7 @@ void drawPTspectrum() {
 		t1->SetBranchAddress("pass_HLT_j400",&pass_HLT_j400);
 		t1->SetBranchAddress("weight_pileup",&weight_pileup);
 		t1->SetBranchAddress("weight",&weight);
-
-		mcChannelNumber = t1->GetEntry(1);
-		weight = t1->GetEntry(1);
-		weight_pileup = t1->GetEntry(1);
+		t1->SetBranchAddress("pdfWeights",&pdfWeights);
 
 		float mc_weight;
 		int mc_mod;
@@ -78,13 +75,12 @@ void drawPTspectrum() {
 		TH1 *h = (TH1F*)f2.Get(mod);
 		mc_weight = h->GetBinContent(1);
 
-		w = pdfWeights[0] * weight * mc_weight;
-
 		entries = t1->GetEntries();
 
 		for (int i=0; i<entries; ++i) {
 			t1->GetEvent(i);
 			if(pass_HLT_j400 == true && j1_pT > 500 && j1_pT < 2000 && abs(j1_eta) < 2.1 && abs(j2_eta) < 2.5 &&  abs(j1_eta)/abs(j2_eta) <  1.5) {
+				w = weight * pdfWeights[0] * mc_weight;
 				h2->Fill(j1_pT,w);
 				//h2->Fill(j2_pT,w);
 			}
