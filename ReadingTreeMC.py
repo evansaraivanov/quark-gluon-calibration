@@ -1,4 +1,5 @@
 from ROOT import *
+import math
 
 # This scripts read ttree as inputs and produce different histograms of distribution of variables in different pT range
 
@@ -71,13 +72,13 @@ def FindBinIndex(jet_pt,ptbin):
 
 
 ######## read and excute TTree from root file 
-finput = TFile.Open("/eos/user/e/esaraiva/dijet-data-bdt/dijet_sherpa_bdt.root")
+finput = TFile.Open("/eos/user/w/wasu/AQT_dijet_sherpa_bdt/dijet_sherpa_bdt.root")
 #finput = TFile.Open("/eos/user/e/esaraiva/dijet-data-bdt/dijet_data_bdt.root")
 t1 = finput.Get("AntiKt4EMPFlow_dijet_insitu")
 
 for i in t1:
 	if i.pass_HLT_j400 == 1 :#and i.j1_is_truth_jet and i.j2_is_truth_jet:
-		if i.j1_pT > 500 and i.j1_pT < 2000 and abs(i.j1_eta) < 2.1 and abs(i.j2_eta) < 2.1 and i.j1_pT/i.j2_pT < 1.5:
+		if i.j1_pT > 500 and i.j1_pT < 2000 and abs(i.j1_eta) < 2.1 and abs(i.j2_eta) < 2.1 and i.j1_pT/i.j2_pT < 1.5 and math.isnan(i.j1_pT) == False and math.isnan(i.j2_pT) == False:
 			pTbin1 = FindBinIndex(i.j1_pT, bins)
 			pTbin2 = FindBinIndex(i.j2_pT, bins)
 
@@ -98,7 +99,7 @@ for i in t1:
 
 
 #foutput = TFile("dijet-data-py.root","recreate")
-foutput = TFile("dijet-sherpa-py.root","recreate")
+foutput = TFile("/eos/user/e/esaraiva/dijet-data-bdt/dijet-sherpa-py.root","recreate")
 for hist in HistMap.values():
 	#for i in range(len(bins)):
 		#if str(bins[i]) in HistMap.keys():
